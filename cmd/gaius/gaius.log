@@ -1,0 +1,2 @@
+{"level":"info","ts":1732612135.3157942,"caller":"http/server.go:56","msg":"gracefully stopping http server at address localhost:9090"}
+{"level":"fatal","ts":1732612135.3162177,"caller":"http/server.go:47","msg":"failed run http server: http: Server closed","stacktrace":"github.com/zvfkjytytw/marius/internal/gaius/server/http.(*ServerHTTP).Run\n\t/home/lix0/repo/golang/marius/internal/gaius/server/http/server.go:47\ngithub.com/zvfkjytytw/marius/internal/gaius/app.(*App).Run.func1\n\t/home/lix0/repo/golang/marius/internal/gaius/app/app.go:86"}
