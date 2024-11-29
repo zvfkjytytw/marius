@@ -13,6 +13,7 @@ import (
 
 	common "github.com/zvfkjytytw/marius/internal/common"
 	ghttp "github.com/zvfkjytytw/marius/internal/gaius/server/http"
+	pg "github.com/zvfkjytytw/marius/internal/pg"
 )
 
 type Signum interface {
@@ -23,6 +24,7 @@ type Signum interface {
 
 type Config struct {
 	HTTPConfig *ghttp.ConfigHTTP `yaml:"http_config"`
+	PGConfig   *pg.ConfigPG      `yaml:"pg_config"`
 }
 
 type App struct {
@@ -37,8 +39,14 @@ func NewApp(config Config) (*App, error) {
 		return nil, fmt.Errorf("failed init logger: %v", err)
 	}
 
+	// init postgres agent
+	pgAgent, err := pg.NewPGAgent(*config.PGConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed init postgres agent: %v", err)
+	}
+
 	// init http server
-	server, err := ghttp.NewHTTPServer(config.HTTPConfig, logger)
+	server, err := ghttp.NewHTTPServer(config.HTTPConfig, logger, pgAgent)
 	if err != nil {
 		return nil, fmt.Errorf("failed init http server: %v", err)
 	}

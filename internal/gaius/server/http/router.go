@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func (h *ServerHTTP) newRouter() chi.Router {
+func (s *ServerHTTP) newRouter() chi.Router {
 	r := chi.NewRouter()
 
 	r.Use(middleware.StripSlashes)
@@ -18,6 +18,26 @@ func (h *ServerHTTP) newRouter() chi.Router {
 	r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("pong"))
+	})
+
+	r.Route("/save_file", func(r chi.Router) {
+		r.Use(s.saveCtx)
+		r.Post("/*", s.saveFile)
+	})
+
+	r.Route("/get_file", func(r chi.Router) {
+		r.Use(s.getCtx)
+		r.Get("/*", s.getFile)
+	})
+
+	r.Route("/update_file", func(r chi.Router) {
+		r.Use(s.getCtx)
+		r.Put("/*", s.updateFile)
+	})
+
+	r.Route("/delete_file", func(r chi.Router) {
+		r.Use(s.getCtx)
+		r.Delete("/*", s.deleteFile)
 	})
 
 	// stubs

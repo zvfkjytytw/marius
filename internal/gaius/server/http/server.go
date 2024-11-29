@@ -12,7 +12,15 @@ import (
 // type Storage interface {
 // 	GetFile(string) ([]byte, error)
 // 	SaveFile(string, []byte) (string, error)
+//  UpdateFile(string, []byte) error
+//  DeleteFile(string) error
 // }
+
+type FS interface {
+	FindFile(string) (int32, error)
+	CreateFile(string) (int32, error)
+	DeleteFile(string) error
+}
 
 type ConfigHTTP struct {
 	Host         string `yaml:"host"`
@@ -25,9 +33,10 @@ type ConfigHTTP struct {
 type ServerHTTP struct {
 	server *http.Server
 	logger *zap.Logger
+	fs     FS
 }
 
-func NewHTTPServer(config *ConfigHTTP, logger *zap.Logger) (*ServerHTTP, error) {
+func NewHTTPServer(config *ConfigHTTP, logger *zap.Logger, fs FS) (*ServerHTTP, error) {
 	server := &http.Server{
 		Addr:         fmt.Sprintf("%s:%d", config.Host, config.Port),
 		ReadTimeout:  time.Duration(config.ReadTimeout) * time.Second,
@@ -38,6 +47,7 @@ func NewHTTPServer(config *ConfigHTTP, logger *zap.Logger) (*ServerHTTP, error) 
 	return &ServerHTTP{
 		server: server,
 		logger: logger,
+		fs: fs,
 	}, nil
 }
 
