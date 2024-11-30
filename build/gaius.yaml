@@ -4,3 +4,9 @@ http_config:
     read_timeout: 5
     write_timeout: 10
     idle_timeout: 20
+pg_config:
+    host: localhost
+    port: 5432
+    base: marius
+    user: marius
+    pass: marius123
