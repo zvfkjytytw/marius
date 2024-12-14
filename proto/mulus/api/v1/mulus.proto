@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package marius.mulus.api.v1;
 
-option go_package = "github.com/zvfkjytytw/marius/proto/mulus/api/v1;api";
+option go_package = "api;github.com/zvfkjytytw/marius/proto/mulus/api/v1";
 
 service MulusAPI {
     rpc SaveData(SaveRequest) returns (SaveResponse) {}
