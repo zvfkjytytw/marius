@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package marius.mulus.api.v1;
+
+option go_package = "github.com/zvfkjytytw/marius/proto/mulus/api/v1;api";
+
+service MulusAPI {
+    rpc SaveData(SaveRequest) returns (SaveResponse) {}
+    rpc GetData(GetRequest) returns (GetResponse) {}
+    rpc DeleteData(DeleteRequest) returns (DeleteResponse) {}
+}
+
+message SaveRequest {
+    bytes data = 1;
+    string name = 2;
+}
+
+message SaveResponse {
+    string name = 1;
+}
+
+message GetRequest {
+    string name = 1;
+}
+
+message GetResponse {
+    bytes data = 1;
+    string name = 2;
+}
+
+message DeleteRequest {
+    string name = 1;
+}
+
+message DeleteResponse {
+    string name = 1;
+}
+
