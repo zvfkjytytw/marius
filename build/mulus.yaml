@@ -1,0 +1,5 @@
+grpc_config:
+    host: localhost
+    port: 13081
+storage_config:
+    folder: mus1
