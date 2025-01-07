@@ -16,7 +16,7 @@ import (
 	pg "github.com/zvfkjytytw/marius/internal/pg"
 )
 
-type Signum interface {
+type Manipula interface {
 	Run(context.Context) error
 	Stop(context.Context) error
 	Kill()
@@ -28,8 +28,8 @@ type Config struct {
 }
 
 type App struct {
-	logger  *zap.Logger
-	signums []Signum
+	logger *zap.Logger
+	legio  []Manipula
 }
 
 func NewApp(config Config) (*App, error) {
@@ -53,7 +53,7 @@ func NewApp(config Config) (*App, error) {
 
 	return &App{
 		logger: logger,
-		signums: []Signum{
+		legio: []Manipula{
 			server,
 		},
 	}, nil
@@ -85,8 +85,8 @@ func (a *App) Run(ctx context.Context) {
 		syscall.SIGQUIT,
 	)
 
-	for _, signum := range a.signums {
-		go func(signum Signum) {
+	for _, signum := range a.legio {
+		go func(signum Manipula) {
 			if err := signum.Run(ctx); err != nil {
 				a.logger.Sugar().Errorf("some signum failed to start: %v", err)
 			}
@@ -100,9 +100,9 @@ func (a *App) Run(ctx context.Context) {
 
 func (a *App) stopAll(ctx context.Context) {
 	var wg sync.WaitGroup
-	wg.Add(len(a.signums))
-	for _, signum := range a.signums {
-		go func(signum Signum) {
+	wg.Add(len(a.legio))
+	for _, signum := range a.legio {
+		go func(signum Manipula) {
 			defer wg.Done()
 			if err := signum.Stop(ctx); err != nil {
 				signum.Kill()
