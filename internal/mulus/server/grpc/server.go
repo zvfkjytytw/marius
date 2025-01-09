@@ -11,6 +11,10 @@ import (
 	"github.com/zvfkjytytw/marius/proto/mulus/api/v1"
 )
 
+const (
+	maxMsgSize = 1024 * 1024 * 1024
+)
+
 type storage interface {
 	DeleteData(string) error
 	GetData(string) ([]byte, error)
@@ -35,13 +39,17 @@ func NewGRPCServer(config *ConfigGRPC, logger *zap.Logger, storage storage) (*Se
 	if err != nil {
 		logger.Sugar().Fatalf("failed to listen: %v", err)
 	}
-	opts := []grpc.ServerOption{}
+	opts := []grpc.ServerOption{
+		grpc.MaxRecvMsgSize(maxMsgSize),
+		grpc.MaxSendMsgSize(maxMsgSize),
+	}
 	server := grpc.NewServer(opts...)
 
 	return &ServerGRPC{
 		listener: listener,
 		server:   server,
 		logger:   logger,
+		storage:  storage,
 	}, nil
 }
 

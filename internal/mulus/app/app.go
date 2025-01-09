@@ -42,13 +42,13 @@ func NewApp(config Config) (*App, error) {
 	// init storage
 	storage, err := lstorage.NewStorage(*config.StorageConfig)
 	if err != nil {
-		return nil, fmt.Errorf("failed init logger: %v", err)
+		return nil, fmt.Errorf("failed init storage: %v", err)
 	}
 
 	// init grpc server
 	server, err := mgrpc.NewGRPCServer(config.GRPCConfig, logger, storage)
 	if err != nil {
-		return nil, fmt.Errorf("failed init http server: %v", err)
+		return nil, fmt.Errorf("failed init grpc server: %v", err)
 	}
 
 	return &App{
