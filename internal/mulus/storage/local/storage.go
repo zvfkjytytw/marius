@@ -16,12 +16,12 @@ type Storage struct {
 }
 
 func NewStorage(cfg Config) (*Storage, error) {
-	if err := os.Mkdir(cfg.Folder, os.ModeDir); err != nil {
+	absPath, err := filepath.Abs(cfg.Folder)
+	if err != nil {
 		return nil, err
 	}
 
-	absPath, err := filepath.Abs(cfg.Folder)
-	if err != nil {
+	if err := os.Mkdir(absPath, 0755); err != nil && !os.IsExist(err) {
 		return nil, err
 	}
 
@@ -36,7 +36,7 @@ func (s *Storage) SaveData(name string, data []byte) error {
 		return fmt.Errorf("file %s already exists", filePath)
 	}
 
-	if err := os.WriteFile(filePath, data, os.ModeExclusive); err != nil {
+	if err := os.WriteFile(filePath, data, 0644); err != nil {
 		return fmt.Errorf("failed write file %s: %w", filePath, err)
 	}
 
