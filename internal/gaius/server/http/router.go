@@ -20,6 +20,8 @@ func (s *ServerHTTP) newRouter() chi.Router {
 		w.Write([]byte("pong"))
 	})
 
+	r.Post("add_mus", s.addMus)
+
 	r.Route("/save_file", func(r chi.Router) {
 		r.Use(s.saveCtx)
 		r.Post("/*", s.saveFile)

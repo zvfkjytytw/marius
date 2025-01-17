@@ -9,12 +9,13 @@ import (
 	"go.uber.org/zap"
 )
 
-// type Storage interface {
-// 	GetFile(string) ([]byte, error)
-// 	SaveFile(string, []byte) (string, error)
-//  UpdateFile(string, []byte) error
-//  DeleteFile(string) error
-// }
+type Storage interface {
+	GetFile(context.Context, int32) ([]byte, error)
+	SaveFile(context.Context, int32, []byte) error
+	UpdateFile(context.Context, int32, []byte) error
+	DeleteFile(context.Context, int32) error
+	AddMus(context.Context, string) error
+}
 
 type FS interface {
 	FindFile(string) (int32, error)
@@ -31,12 +32,13 @@ type ConfigHTTP struct {
 }
 
 type ServerHTTP struct {
-	server *http.Server
-	logger *zap.Logger
-	fs     FS
+	server  *http.Server
+	logger  *zap.Logger
+	fs      FS
+	storage Storage
 }
 
-func NewHTTPServer(config *ConfigHTTP, logger *zap.Logger, fs FS) (*ServerHTTP, error) {
+func NewHTTPServer(config *ConfigHTTP, logger *zap.Logger, fs FS, storage Storage) (*ServerHTTP, error) {
 	server := &http.Server{
 		Addr:         fmt.Sprintf("%s:%d", config.Host, config.Port),
 		ReadTimeout:  time.Duration(config.ReadTimeout) * time.Second,
@@ -45,9 +47,10 @@ func NewHTTPServer(config *ConfigHTTP, logger *zap.Logger, fs FS) (*ServerHTTP, 
 	}
 
 	return &ServerHTTP{
-		server: server,
-		logger: logger,
-		fs: fs,
+		server:  server,
+		logger:  logger,
+		fs:      fs,
+		storage: storage,
 	}, nil
 }
 

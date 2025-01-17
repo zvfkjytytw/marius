@@ -6,11 +6,12 @@ import (
 	"strings"
 )
 
-type contextKey int
+type contextKey int8
 
 const (
-	slash = "/"
+	slash                    = "/"
 	contextFileID contextKey = iota
+	contextFilePath
 )
 
 func (s *ServerHTTP) saveCtx(next http.Handler) http.Handler {
@@ -54,6 +55,7 @@ func (s *ServerHTTP) getCtx(next http.Handler) http.Handler {
 		}
 
 		ctx := context.WithValue(r.Context(), contextFileID, fileID)
+		ctx = context.WithValue(ctx, contextFilePath, strings.Join(filePath, slash))
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
