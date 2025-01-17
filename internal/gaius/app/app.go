@@ -13,6 +13,7 @@ import (
 
 	common "github.com/zvfkjytytw/marius/internal/common"
 	ghttp "github.com/zvfkjytytw/marius/internal/gaius/server/http"
+	gstorage "github.com/zvfkjytytw/marius/internal/gaius/storage"
 	pg "github.com/zvfkjytytw/marius/internal/pg"
 )
 
@@ -45,8 +46,14 @@ func NewApp(config Config) (*App, error) {
 		return nil, fmt.Errorf("failed init postgres agent: %v", err)
 	}
 
+	// init storage
+	storage, err := gstorage.NewStorage(pgAgent, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed init storage: %v", err)
+	}
+
 	// init http server
-	server, err := ghttp.NewHTTPServer(config.HTTPConfig, logger, pgAgent)
+	server, err := ghttp.NewHTTPServer(config.HTTPConfig, logger, pgAgent, storage)
 	if err != nil {
 		return nil, fmt.Errorf("failed init http server: %v", err)
 	}
