@@ -36,14 +36,19 @@ func main() {
 	}
 
 	conn, err := grpc.NewClient(mulusServer, opts...)
-
 	if err != nil {
 		fmt.Printf("fail to dial: %v", err)
 	}
-
 	defer conn.Close()
 
 	client := api.NewMulusAPIClient(conn)
+	if _, err = client.Ping(
+		context.Background(),
+		&api.PingRequest{Hello: "decanus"},
+	); err != nil {
+		fmt.Println("Mus rpc server not responding")
+		os.Exit(1)
+	}
 
 	_, err = client.SaveData(
 		context.Background(),

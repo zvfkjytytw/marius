@@ -9,7 +9,7 @@ import (
 	"github.com/zvfkjytytw/marius/proto/mulus/api/v1"
 )
 
-const fileNameTemplate = `file_{%d}`
+const fileNameTemplate = `file_%d`
 
 func (s *Storage) GetFile(ctx context.Context, fileID int32) ([]byte, error) {
 	mulus, err := s.tesser.GetMulus(fileID)
@@ -17,13 +17,14 @@ func (s *Storage) GetFile(ctx context.Context, fileID int32) ([]byte, error) {
 		return nil, fmt.Errorf("fail get mulus for file %d: %w", fileID, err)
 	}
 
-	var wg sync.WaitGroup
 	var dataSlice [dataParts][]byte
 	fileName := fmt.Sprintf(fileNameTemplate, fileID)
 
+	var wg sync.WaitGroup
 	wg.Add(dataParts)
 	for i, mus := range mulus {
 		go func(musAddress string, part int) {
+			defer wg.Done()
 			data, err := s.getData(ctx, fileName, musAddress)
 			if err != nil {
 				s.logger.Sugar().Errorf("fail get data from mus %s: %v", musAddress, err)
@@ -31,6 +32,7 @@ func (s *Storage) GetFile(ctx context.Context, fileID int32) ([]byte, error) {
 			dataSlice[part] = data
 		}(mus, i)
 	}
+	wg.Wait()
 
 	var fileData []byte
 	for _, data := range dataSlice {
@@ -61,11 +63,11 @@ func (s *Storage) SaveFile(ctx context.Context, fileID int32, data []byte) error
 		return fmt.Errorf("fail to select mulus: %w", err)
 	}
 
-	var wg sync.WaitGroup
 	var mulusExitus [dataParts]string
 	indexStep := len(data) / dataParts
 	fileName := fmt.Sprintf(fileNameTemplate, fileID)
 
+	var wg sync.WaitGroup
 	wg.Add(dataParts)
 	for i := 0; i < dataParts; i++ {
 		firstIndex := i * indexStep
@@ -85,10 +87,9 @@ func (s *Storage) SaveFile(ctx context.Context, fileID int32, data []byte) error
 			mulusExitus[part] = musAddress
 		}(data[firstIndex:lastIndex], i)
 	}
-
 	wg.Wait()
-	sort.Slice(s.cohors, func(i, j int) bool { return s.cohors[i].sarcina < s.cohors[j].sarcina })
 
+	sort.Slice(s.cohors, func(i, j int) bool { return s.cohors[i].sarcina < s.cohors[j].sarcina })
 	if err := s.tesser.SetMulus(fileID, mulusExitus); err != nil {
 		return fmt.Errorf("fail set mulus for file %d: %w", fileID, err)
 	}
@@ -129,13 +130,20 @@ func (s *Storage) DeleteFile(ctx context.Context, fileID int32) error {
 	if err != nil {
 		return fmt.Errorf("fail to get mulus: %w", err)
 	}
+
 	fileName := fmt.Sprintf(fileNameTemplate, fileID)
 
+	var wg sync.WaitGroup
+	wg.Add(dataParts)
 	for _, mus := range mulus {
-		if err := s.deleteData(ctx, fileName, mus); err != nil {
-			s.logger.Sugar().Errorf("fail to delete file %s from mus %s: %v", fileName, mus, err)
-		}
+		go func(musAddress string) {
+			defer wg.Done()
+			if err := s.deleteData(ctx, fileName, musAddress); err != nil {
+				s.logger.Sugar().Errorf("fail to delete file %s from mus %s: %v", fileName, mus, err)
+			}
+		}(mus)
 	}
+	wg.Wait()
 
 	if err := s.tesser.FlushMulus(fileID); err != nil {
 		return fmt.Errorf("fail flush mulus for file %d: %w", fileID, err)

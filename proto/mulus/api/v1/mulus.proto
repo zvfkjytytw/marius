@@ -2,12 +2,21 @@ syntax = "proto3";
 
 package marius.mulus.api.v1;
 
-option go_package = "api;github.com/zvfkjytytw/marius/proto/mulus/api/v1";
+option go_package = "github.com/zvfkjytytw/marius/proto/mulus/api/v1;api";
 
 service MulusAPI {
+    rpc Ping(PingRequest) returns (PingResponse) {}
     rpc SaveData(SaveRequest) returns (SaveResponse) {}
     rpc GetData(GetRequest) returns (GetResponse) {}
     rpc DeleteData(DeleteRequest) returns (DeleteResponse) {}
+}
+
+message PingRequest {
+    string hello = 1;
+}
+
+message PingResponse {
+    string hello = 1;
 }
 
 message SaveRequest {

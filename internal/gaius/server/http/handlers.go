@@ -9,29 +9,24 @@ import (
 )
 
 func (s *ServerHTTP) saveFile(w http.ResponseWriter, r *http.Request) {
-	contentType, ok := r.Header["Content-Type"]
-	if !ok || contentType[0] != "application/octet-stream" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("wrong Content-Type. Expect application/octet-stream"))
-		return
-	}
-
 	defer r.Body.Close()
 	requestBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("failed to read file"))
+		w.Write([]byte("failed to read data"))
 		return
 	}
 
-	fileID, err := strconv.Atoi(fmt.Sprintf("%v", r.Context().Value(contextFileID)))
+	filePath := fmt.Sprintf("%v", r.Context().Value(contextFilePath))
+	fileID, err := s.fs.CreateFile(filePath)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("wrong new file ID"))
+		w.Write([]byte("failed to create new file"))
 		return
 	}
 
-	if err = s.storage.SaveFile(r.Context(), int32(fileID), requestBody); err != nil {
+	if err = s.storage.SaveFile(r.Context(), fileID, requestBody); err != nil {
+		s.fs.DeleteFile(filePath)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("failed to save new file"))
 		return
@@ -45,7 +40,7 @@ func (s *ServerHTTP) getFile(w http.ResponseWriter, r *http.Request) {
 	fileID, err := strconv.Atoi(fmt.Sprintf("%v", r.Context().Value(contextFileID)))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("wrong new file ID"))
+		w.Write([]byte("wrong file ID"))
 		return
 	}
 
@@ -62,13 +57,6 @@ func (s *ServerHTTP) getFile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *ServerHTTP) updateFile(w http.ResponseWriter, r *http.Request) {
-	contentType, ok := r.Header["Content-Type"]
-	if !ok || contentType[0] != "application/octet-stream" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("wrong Content-Type. Expect application/octet-stream"))
-		return
-	}
-
 	defer r.Body.Close()
 	requestBody, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -98,7 +86,7 @@ func (s *ServerHTTP) deleteFile(w http.ResponseWriter, r *http.Request) {
 	fileID, err := strconv.Atoi(fmt.Sprintf("%v", r.Context().Value(contextFileID)))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("wrong new file ID"))
+		w.Write([]byte("wrong file ID"))
 		return
 	}
 	if err = s.storage.DeleteFile(r.Context(), int32(fileID)); err != nil {
@@ -118,13 +106,6 @@ func (s *ServerHTTP) deleteFile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *ServerHTTP) addMus(w http.ResponseWriter, r *http.Request) {
-	contentType, ok := r.Header["Content-Type"]
-	if !ok || contentType[0] != "application/json" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("wrong Content-Type. Expect application/json"))
-		return
-	}
-
 	defer r.Body.Close()
 	requestBody, err := io.ReadAll(r.Body)
 	if err != nil {

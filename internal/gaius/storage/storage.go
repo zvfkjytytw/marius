@@ -2,7 +2,6 @@ package gaiusstorage
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"go.uber.org/zap"
@@ -32,13 +31,9 @@ func NewStorage(t tessarius, logger *zap.Logger) (*Storage, error) {
 }
 
 func (s *Storage) Kill(ctx context.Context) {
-	for _, leg := range s.castra {
-		leg.conn.Close()
+	for addr, leg := range s.castra {
+		if err := leg.conn.Close(); err != nil {
+			s.logger.Sugar().Errorf("fail close connection to %s: %v", addr, err)
+		}
 	}
-}
-
-func (s *Storage) GetName() (name string, err error) {
-	name = fmt.Sprintf("IS %s", "TEST")
-
-	return
 }
