@@ -48,7 +48,7 @@ func (pg *PGAgent) getItemID(path, itemTable string) (int32, error) {
 	}
 
 	if err = pg.db.QueryRow(sql, args...).Scan(&itemID); err != nil {
-		return 0, fmt.Errorf("folder %s not found: %v", path, err)
+		return 0, fmt.Errorf("item %s not found: %v", path, err)
 	}
 
 	return itemID, nil

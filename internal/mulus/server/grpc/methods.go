@@ -6,6 +6,12 @@ import (
 	"github.com/zvfkjytytw/marius/proto/mulus/api/v1"
 )
 
+func (s *ServerGRPC) Ping(ctx context.Context, request *api.PingRequest) (*api.PingResponse, error) {
+	return &api.PingResponse{
+		Hello: "mus",
+	}, nil
+}
+
 func (s *ServerGRPC) SaveData(ctx context.Context, request *api.SaveRequest) (*api.SaveResponse, error) {
 	if err := s.storage.SaveData(request.Name, request.Data); err != nil {
 		return nil, err

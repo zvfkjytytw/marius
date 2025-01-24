@@ -28,21 +28,14 @@ func (s *ServerHTTP) saveCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		fileID, err := s.fs.CreateFile(strings.Join(filePath, slash))
-		if err != nil {
-			s.logger.Sugar().Errorf("failed create file: %v", err)
-			http.Error(w, "failed create file", http.StatusInternalServerError)
-			return
-		}
-
-		ctx := context.WithValue(r.Context(), contextFileID, fileID)
+		ctx := context.WithValue(r.Context(), contextFilePath, strings.Join(filePath, slash))
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 func (s *ServerHTTP) getCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		filePath := strings.Split(r.URL.Path, slash)[1:]
+		filePath := strings.Split(strings.TrimLeft(r.URL.Path, slash), slash)[1:]
 		if len(filePath) == 0 {
 			http.Error(w, "file not specified", http.StatusBadRequest)
 			return

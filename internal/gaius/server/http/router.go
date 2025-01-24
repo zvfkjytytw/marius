@@ -20,9 +20,13 @@ func (s *ServerHTTP) newRouter() chi.Router {
 		w.Write([]byte("pong"))
 	})
 
-	r.Post("add_mus", s.addMus)
+	r.Route("/add_mus", func(r chi.Router) {
+		r.Use(middleware.AllowContentType("application/json"))
+		r.Post("/", s.addMus)
+	})
 
 	r.Route("/save_file", func(r chi.Router) {
+		r.Use(middleware.AllowContentType("application/octet-stream"))
 		r.Use(s.saveCtx)
 		r.Post("/*", s.saveFile)
 	})
@@ -33,6 +37,7 @@ func (s *ServerHTTP) newRouter() chi.Router {
 	})
 
 	r.Route("/update_file", func(r chi.Router) {
+		r.Use(middleware.AllowContentType("application/octet-stream"))
 		r.Use(s.getCtx)
 		r.Put("/*", s.updateFile)
 	})

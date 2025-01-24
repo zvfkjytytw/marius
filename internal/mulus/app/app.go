@@ -34,7 +34,7 @@ type App struct {
 
 func NewApp(config Config) (*App, error) {
 	// init logger
-	logger, err := common.InitLogger("mulus")
+	logger, err := common.InitLogger("mus")
 	if err != nil {
 		return nil, fmt.Errorf("failed init logger: %v", err)
 	}

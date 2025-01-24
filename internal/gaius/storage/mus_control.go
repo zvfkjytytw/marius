@@ -42,9 +42,13 @@ func (s *Storage) AddMus(ctx context.Context, address string) error {
 	}
 
 	conn, err := grpc.NewClient(address, opts...)
-
 	if err != nil {
 		return fmt.Errorf("fail dial to %s: %w", address, err)
+	}
+
+	client := api.NewMulusAPIClient(conn)
+	if _, err = client.Ping(ctx, &api.PingRequest{}); err != nil {
+		return fmt.Errorf("fail connect to rpc server %s: %w", address, err)
 	}
 
 	s.Lock()
@@ -52,7 +56,7 @@ func (s *Storage) AddMus(ctx context.Context, address string) error {
 
 	s.castra[address] = &legionarius{
 		conn:   conn,
-		client: api.NewMulusAPIClient(conn),
+		client: client,
 	}
 
 	s.cohors = append(

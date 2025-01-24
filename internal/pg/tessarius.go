@@ -11,7 +11,7 @@ const (
 )
 
 func (pg *PGAgent) GetMulus(fileID int32) ([dataParts]string, error) {
-	sql, args, err := sq.Select(foldersTable).Columns("part1", "part2", "part3", "part4", "part5", "part6").
+	sql, args, err := sq.Select("part1", "part2", "part3", "part4", "part5", "part6").From(filesTable).
 		Where(sq.Eq{"id": fileID}).PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
 		return [dataParts]string{}, fmt.Errorf("fail to generate select parts query for file %d: %w", fileID, err)
@@ -32,7 +32,7 @@ func (pg *PGAgent) SetMulus(fileID int32, mulus [dataParts]string) error {
 		return fmt.Errorf("file %d not found", fileID)
 	}
 
-	sql, args, err := sq.Update(foldersTable).
+	sql, args, err := sq.Update(filesTable).
 		Set("part1", mulus[0]).Set("part2", mulus[1]).Set("part3", mulus[2]).
 		Set("part4", mulus[3]).Set("part5", mulus[4]).Set("part6", mulus[5]).
 		Where(sq.Eq{"id": fileID}).PlaceholderFormat(sq.Dollar).ToSql()
@@ -68,7 +68,7 @@ func (pg *PGAgent) FlushMulus(fileID int32) error {
 	}
 
 	var empty string
-	sql, args, err := sq.Update(foldersTable).
+	sql, args, err := sq.Update(filesTable).
 		Set("part1", empty).Set("part2", empty).Set("part3", empty).
 		Set("part4", empty).Set("part5", empty).Set("part6", empty).
 		Where(sq.Eq{"id": fileID}).PlaceholderFormat(sq.Dollar).ToSql()
@@ -99,15 +99,14 @@ func (pg *PGAgent) FlushMulus(fileID int32) error {
 }
 
 func (pg *PGAgent) checkFile(fileID int32) bool {
-	sql, args, err := sq.Select(foldersTable).Columns("id").
+	sql, args, err := sq.Select("id").From(filesTable).
 		Where(sq.Eq{"id": fileID}).PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
 		return false
 	}
 
-	row := pg.db.QueryRow(sql, args...)
 	var id int32
-	if err := row.Scan(&id); err != nil {
+	if err := pg.db.QueryRow(sql, args...).Scan(&id); err != nil {
 		return false
 	}
 
