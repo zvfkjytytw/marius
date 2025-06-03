@@ -130,6 +130,9 @@ func (s *ServerHTTP) addMus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 4 launch in docker compose
+	s.logger.Sugar().Infof("mus %s is added", mus.Address)
+
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("new mus added"))
 }

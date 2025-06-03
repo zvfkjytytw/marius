@@ -8,6 +8,11 @@ import (
 	"sync"
 	"syscall"
 
+	// 4 launch in docker compose
+	"bytes"
+	"net/http"
+	"time"
+
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 
@@ -15,6 +20,15 @@ import (
 	mgrpc "github.com/zvfkjytytw/marius/internal/mulus/server/grpc"
 	lstorage "github.com/zvfkjytytw/marius/internal/mulus/storage/local"
 )
+
+// 4 launch in docker compose
+const (
+	envGaiusHost = "GAIUS_HOST"
+	envMusHost   = "MUS_HOST"
+	gaiusPort    = 9090
+)
+
+var musPort int32
 
 type contubernium interface {
 	Run(context.Context) error
@@ -50,6 +64,9 @@ func NewApp(config Config) (*App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed init grpc server: %v", err)
 	}
+
+	// 4 launch in docker compose
+	musPort = config.GRPCConfig.Port
 
 	return &App{
 		logger: logger,
@@ -93,6 +110,11 @@ func (a *App) Run(ctx context.Context) {
 		}(signum)
 	}
 
+	// 4 launch in docker compose
+	if err := iungereToGaius(); err != nil {
+		a.logger.Sugar().Errorf("failed to register to gaius service: %v", err)
+	}
+
 	stopSignal := <-sigChanel
 	a.logger.Sugar().Debugf("Stop by %v", stopSignal)
 	a.stopAll(ctx)
@@ -111,4 +133,39 @@ func (a *App) stopAll(ctx context.Context) {
 	}
 
 	wg.Wait()
+}
+
+// 4 docker compose running
+func iungereToGaius() error {
+	gaiusHost := os.Getenv(envGaiusHost)
+	if gaiusHost == "" {
+		return fmt.Errorf("gaius host is absent")
+	}
+
+	musHost := os.Getenv(envMusHost)
+	if musHost == "" {
+		return fmt.Errorf("mus host is absent")
+	}
+
+	if gaiusPort == 0 || musPort == 0 {
+		return fmt.Errorf("gaius or Mus port is absent")
+	}
+
+	// wait for gaius is up in docker compose
+	time.Sleep(time.Second * 2)
+
+	// sent registration request to gaius
+	url := fmt.Sprintf("http://%s:%d/add_mus", gaiusHost, gaiusPort)
+	jsonStr := []byte(fmt.Sprintf(`{"address": "%s:%d"}`, musHost, musPort))
+	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed registration: %v", err)
+	}
+	defer resp.Body.Close()
+
+	return nil
 }
