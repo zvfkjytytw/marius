@@ -3,12 +3,14 @@ package mariuspg
 import (
 	"database/sql"
 	"fmt"
+	"os"
 
 	_ "github.com/lib/pq"
 )
 
 const (
-	pgDriver = "postgres"
+	pgDriver  = "postgres"
+	envDBHost = "POSTGRESQL_HOST"
 )
 
 var (
@@ -28,9 +30,15 @@ type PGAgent struct {
 }
 
 func NewPGAgent(config ConfigPG) (*PGAgent, error) {
+	// 4 docker compose running
+	dbHost := config.Host
+	if envHost := os.Getenv(envDBHost); envHost != "" {
+		dbHost = envHost
+	}
+
 	dsn := fmt.Sprintf(
 		pgDSNTemplate,
-		config.Host,
+		dbHost,
 		config.Port,
 		config.Base,
 		config.User,

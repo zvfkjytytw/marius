@@ -1,12 +1,159 @@
 services:
   postgres:
     image: postgres:16.3
+    container_name: postgres
     restart: always
     environment:
       POSTGRES_USER: marius
       POSTGRES_PASSWORD: marius123
       POSTGRES_DB: marius
-    volumes:
-      - ./data:/tmp
+      PGDATA: /var/lib/postgresql/data/pgdata
+    networks:
+      - marius_network
+    # volumes:
+    #   - ./data/pgdata:/var/lib/postgresql/data/pgdata
     ports:
       - 5432:5432
+
+  gaius:
+    depends_on:
+      - postgres
+    image: gaius:0.1
+    container_name: gaius
+    environment:
+      APP_CONFIG_FILE: /app/gaius.yaml
+      POSTGRESQL_HOST: 'postgres'
+    networks:
+      marius_network:
+        ipv4_address: 17.18.19.20
+    ports:
+      - 9090:9090
+
+  mus1:
+    depends_on:
+      - gaius
+    image: mulus:0.1
+    container_name: mus1
+    environment:
+      APP_CONFIG_FILE: /app/mulus.yaml
+      GAIUS_HOST: 17.18.19.20
+      MUS_HOST: 17.18.19.21
+    networks:
+      marius_network:
+        ipv4_address: 17.18.19.21
+    volumes:
+      - ./data/mus1:/app/mus
+
+  mus2:
+    depends_on:
+      - gaius
+    image: mulus:0.1
+    container_name: mus2
+    environment:
+      APP_CONFIG_FILE: /app/mulus.yaml
+      GAIUS_HOST: 17.18.19.20
+      MUS_HOST: 17.18.19.22
+    networks:
+      marius_network:
+        ipv4_address: 17.18.19.22
+    volumes:
+      - ./data/mus2:/app/mus
+
+  mus3:
+    depends_on:
+      - gaius
+    image: mulus:0.1
+    container_name: mus3
+    environment:
+      APP_CONFIG_FILE: /app/mulus.yaml
+      GAIUS_HOST: 17.18.19.20
+      MUS_HOST: 17.18.19.23
+    networks:
+      marius_network:
+        ipv4_address: 17.18.19.23
+    volumes:
+      - ./data/mus3:/app/mus
+
+  mus4:
+    depends_on:
+      - gaius
+    image: mulus:0.1
+    container_name: mus4
+    environment:
+      APP_CONFIG_FILE: /app/mulus.yaml
+      GAIUS_HOST: 17.18.19.20
+      MUS_HOST: 17.18.19.24
+    networks:
+      marius_network:
+        ipv4_address: 17.18.19.24
+    volumes:
+      - ./data/mus4:/mus
+
+  mus5:
+    depends_on:
+      - gaius
+    image: mulus:0.1
+    container_name: mus5
+    environment:
+      APP_CONFIG_FILE: /app/mulus.yaml
+      GAIUS_HOST: 17.18.19.20
+      MUS_HOST: 17.18.19.25
+    networks:
+      marius_network:
+        ipv4_address: 17.18.19.25
+    volumes:
+      - ./data/mus5:/mus
+
+  mus6:
+    depends_on:
+      - gaius
+    image: mulus:0.1
+    container_name: mus6
+    environment:
+      APP_CONFIG_FILE: /app/mulus.yaml
+      GAIUS_HOST: 17.18.19.20
+      MUS_HOST: 17.18.19.26
+    networks:
+      marius_network:
+        ipv4_address: 17.18.19.26
+    volumes:
+      - ./data/mus6:/mus
+
+  mus7:
+    depends_on:
+      - gaius
+    image: mulus:0.1
+    container_name: mus7
+    environment:
+      APP_CONFIG_FILE: /app/mulus.yaml
+      GAIUS_HOST: 17.18.19.20
+      MUS_HOST: 17.18.19.27
+    networks:
+      marius_network:
+        ipv4_address: 17.18.19.27
+    volumes:
+      - ./data/mus7:/mus
+
+  mus8:
+    depends_on:
+      - gaius
+    image: mulus:0.1
+    container_name: mus8
+    environment:
+      APP_CONFIG_FILE: /app/mulus.yaml
+      GAIUS_HOST: 17.18.19.20
+      MUS_HOST: 17.18.19.28
+    networks:
+      marius_network:
+        ipv4_address: 17.18.19.28
+    volumes:
+      - ./data/mus8:/mus
+
+
+networks:
+  marius_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 17.18.19.0/24
+          gateway: 17.18.19.1

@@ -1,5 +1,5 @@
 http_config:
-    host: localhost
+    host: 
     port: 9090
     read_timeout: 5
     write_timeout: 10

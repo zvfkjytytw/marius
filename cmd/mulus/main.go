@@ -9,10 +9,16 @@ import (
 	mApp "github.com/zvfkjytytw/marius/internal/mulus/app"
 )
 
+const envConfigFile = "APP_CONFIG_FILE"
+
 func main() {
 	var configFile string
-	flag.StringVar(&configFile, "c", "./build/mulus.yaml", "Mulus config file")
+	flag.StringVar(&configFile, "c", "./mulus.yaml", "Mulus config file")
 	flag.Parse()
+
+	if envCF := os.Getenv(envConfigFile); envCF != "" {
+		configFile = envCF
+	}
 
 	app, err := mApp.NewAppFromConfig(configFile)
 	if err != nil {
